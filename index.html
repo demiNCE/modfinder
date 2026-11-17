@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -8,32 +8,48 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <style>
-:root{
-  --bg:var(--tg-theme-bg-color,#0f1115);--bg2:var(--tg-theme-secondary-bg-color,#171a21);
-  --tx:var(--tg-theme-text-color,#e8eaf0);--hint:var(--tg-theme-hint-color,#8b93a7);
-  --acc:var(--tg-theme-button-color,#2ea6ff);--acctx:var(--tg-theme-button-text-color,#fff);
-  --mr:#1bd96a;--cf:#f16436;--r:16px;
-}
+:root,[data-theme=dark]{--bg:#0d0f14;--bg2:#161a22;--bg3:#202634;--tx:#eef1f6;--hint:#8a93a6;--acc:#1bd96a;--acctx:#06210f;--line:#ffffff14;--mr:#1bd96a;--cf:#f16436}
+[data-theme=light]{--bg:#f4f6fa;--bg2:#ffffff;--bg3:#e8ecf3;--tx:#12151c;--hint:#687286;--acc:#12a150;--acctx:#ffffff;--line:#0000001a;--mr:#12a150;--cf:#e0551f}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--tx);font:15px/1.45 -apple-system,system-ui,Segoe UI,Roboto,sans-serif;padding-bottom:40px}
-header{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 14px 10px;border-bottom:1px solid color-mix(in srgb,var(--hint) 15%,transparent)}
-.brand{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--mr),#2ea6ff);display:grid;place-items:center;font-size:20px}
-.brand b{font-size:19px}.brand span{color:var(--hint);font-size:12px;display:block}
+body{background:var(--bg);color:var(--tx);font:15px/1.45 -apple-system,system-ui,Segoe UI,Roboto,sans-serif;padding-bottom:40px;transition:background .2s,color .2s}
+button{font:inherit;color:inherit;cursor:pointer}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 14px 10px;border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#1bd96a,#2ea6ff);display:grid;place-items:center;font-size:20px}
+.top b{font-size:19px;flex:1}
+.ibtn{background:var(--bg2);border:1px solid var(--line);border-radius:12px;height:36px;min-width:36px;padding:0 10px;font-size:14px;font-weight:600}
 .search{display:flex;gap:8px}
-.search input{flex:1;background:var(--bg2);border:1px solid transparent;color:var(--tx);border-radius:14px;padding:12px 14px;font-size:16px;outline:none}
+.search input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:12px 14px;font-size:16px;outline:none}
 .search input:focus{border-color:var(--acc)}
 .search button{background:var(--acc);color:var(--acctx);border:0;border-radius:14px;padding:0 16px;font-size:18px}
 .filters{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none}
 .filters::-webkit-scrollbar{display:none}
-.chip,select{flex:none;background:var(--bg2);color:var(--tx);border:1px solid transparent;border-radius:999px;padding:7px 13px;font-size:13px;outline:none}
+.chip{flex:none;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;white-space:nowrap}
 .chip.on{border-color:var(--acc);color:var(--acc)}
-select{appearance:none;padding-right:26px;background-image:linear-gradient(45deg,transparent 50%,var(--hint) 50%),linear-gradient(135deg,var(--hint) 50%,transparent 50%);background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.chip .ar{display:inline-block;margin-left:4px;transition:transform .2s;font-size:10px}
+.chip.open .ar{transform:rotate(180deg)}
+#panel{max-height:0;overflow:hidden;transition:max-height .25s ease}
+#panel.open{max-height:50vh}
+.plist{margin-top:10px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;max-height:calc(50vh - 12px);overflow-y:auto}
+.pitem{display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line);font-size:15px}
+.pitem:last-child{border-bottom:0}
+.pitem.on{color:var(--acc);font-weight:600}
+.pitem.on:after{content:"✓"}
 main{padding:12px 14px}
+.sec{font-size:17px;font-weight:700;margin:6px 2px 10px}
 .info{color:var(--hint);font-size:13px;margin:4px 2px 10px}
-.card{display:flex;gap:12px;background:var(--bg2);border-radius:var(--r);padding:12px;margin-bottom:10px;cursor:pointer;transition:transform .12s}
+.marquee{overflow:hidden;margin:0 -14px 10px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.track{display:flex;gap:10px;width:max-content;padding:2px 14px;animation:mq 70s linear infinite}
+.track.rev{animation-direction:reverse;animation-duration:85s}
+.marquee:active .track,.marquee:hover .track{animation-play-state:paused}
+@keyframes mq{to{transform:translateX(-50%)}}
+.mq{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:8px 12px 8px 8px;width:210px;cursor:pointer}
+.mq img{width:40px;height:40px;border-radius:10px;object-fit:cover;background:var(--bg3);flex:none}
+.mq div{min-width:0}.mq b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mq span{font-size:11px;color:var(--hint)}
+.card{display:flex;gap:12px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;cursor:pointer;transition:transform .12s}
 .card:active{transform:scale(.98)}
-.ico{width:56px;height:56px;border-radius:13px;background:color-mix(in srgb,var(--hint) 20%,transparent);flex:none;object-fit:cover}
+.ico{width:56px;height:56px;border-radius:13px;background:var(--bg3);flex:none;object-fit:cover}
 .meta{min-width:0;flex:1}
 .t{font-weight:600;display:flex;align-items:center;gap:6px}
 .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -42,146 +58,262 @@ main{padding:12px 14px}
 .badge.cf{background:color-mix(in srgb,var(--cf) 18%,transparent);color:var(--cf)}
 .a{color:var(--hint);font-size:12px;margin:2px 0 4px}
 .d{font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;opacity:.9}
-.skel{height:80px;border-radius:var(--r);margin-bottom:10px;background:linear-gradient(90deg,var(--bg2),color-mix(in srgb,var(--hint) 18%,var(--bg2)),var(--bg2));background-size:200% 100%;animation:sh 1.2s infinite}
+.skel{height:80px;border-radius:16px;margin-bottom:10px;background:linear-gradient(90deg,var(--bg2),var(--bg3),var(--bg2));background-size:200% 100%;animation:sh 1.2s infinite}
 @keyframes sh{to{background-position:-200% 0}}
 .empty{text-align:center;color:var(--hint);padding:50px 10px}.empty div{font-size:44px;margin-bottom:8px}
-/* detail */
 #detail{display:none;padding:14px}
 .hero{display:flex;gap:14px;align-items:center;margin-bottom:12px}
 .hero .ico{width:76px;height:76px;border-radius:18px}
 .hero h2{font-size:21px;line-height:1.2}
 .stats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
-.stat{background:var(--bg2);border-radius:12px;padding:8px 12px;font-size:13px}
+.stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:13px}
 .btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;border:0;border-radius:14px;padding:13px;font-size:15px;font-weight:600;background:var(--acc);color:var(--acctx);margin-bottom:8px}
-.btn.sec{background:var(--bg2);color:var(--tx)}
+.btn.sec2{background:var(--bg2);color:var(--tx);border:1px solid var(--line)}
 h3{font-size:16px;margin:18px 0 10px}
-.file{display:flex;align-items:center;gap:10px;background:var(--bg2);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.file{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
 .file .fm{flex:1;min-width:0}.file .fn{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .file .fv{font-size:12px;color:var(--hint)}
 .mini{border:0;border-radius:10px;padding:8px 10px;font-size:13px;background:var(--acc);color:var(--acctx);flex:none}
-.mini.sec{background:color-mix(in srgb,var(--hint) 20%,transparent);color:var(--tx)}
+.mini.g{background:var(--bg3);color:var(--tx)}
 .row{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .row::-webkit-scrollbar{display:none}
-.sim{flex:none;width:120px;background:var(--bg2);border-radius:14px;padding:10px;cursor:pointer}
-.sim img{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:color-mix(in srgb,var(--hint) 20%,transparent)}
+.sim{flex:none;width:120px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:10px;cursor:pointer}
+.sim img{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:var(--bg3)}
 .sim b{display:block;font-size:12px;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sim span{font-size:11px;color:var(--hint)}
-.body{background:var(--bg2);border-radius:var(--r);padding:14px;font-size:14px;overflow:hidden}
+.body{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:14px;font-size:14px;overflow:hidden}
 .body img{max-width:100%;height:auto;border-radius:10px}
 .body a{color:var(--acc)}
 .body.short{max-height:320px;position:relative}
 .body.short:after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(transparent,var(--bg2))}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(100px);background:#000c;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;transition:transform .25s;z-index:10}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(100px);background:#000d;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;transition:transform .25s;z-index:10}
 .toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 <div id="list">
   <header>
-    <div class="brand"><div class="logo">🧩</div><div><b>ModFinder</b><span>Modrinth + CurseForge</span></div></div>
-    <form class="search" id="f"><input id="q" placeholder="Мини-карта, мінікарта, minimap…" autocomplete="off"><button>🔎</button></form>
+    <div class="top"><div class="logo">🧩</div><b>ModFinder</b>
+      <button class="ibtn" id="langBtn">EN</button><button class="ibtn" id="themeBtn">🌙</button></div>
+    <form class="search" id="f"><input id="q" autocomplete="off"><button>🔎</button></form>
     <div class="filters">
-      <button class="chip on" data-src="all">Все</button>
-      <button class="chip" data-src="mr">🟢 Modrinth</button>
-      <button class="chip" data-src="cf">🟠 CurseForge</button>
-      <select id="ver"><option value="">Любая версия</option></select>
-      <select id="ldr"><option value="">Любой загрузчик</option><option>fabric</option><option>forge</option><option>neoforge</option><option>quilt</option></select>
+      <button class="chip on" data-src="all" data-i="all"></button>
+      <button class="chip" data-src="mr">Modrinth</button>
+      <button class="chip" data-src="cf">CurseForge</button>
+      <button class="chip" id="verBtn"><span></span><i class="ar">▼</i></button>
+      <button class="chip" id="ldrBtn"><span></span><i class="ar">▼</i></button>
     </div>
+    <div id="panel"><div class="plist" id="plist"></div></div>
   </header>
-  <main id="res"><div class="empty"><div>🔎</div>Напиши, какой мод ищешь —<br>на русском, украинском или английском</div></main>
+  <main id="res"></main>
 </div>
 <div id="detail"></div>
 <div class="toast" id="toast"></div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbzMP58flRxIlCkuCbl-JVIl0Pi-zdJkY9Z1dj-GSB-RUewTwXW-IjGQRhTMaBczumj1/exec'; // same /exec URL as in Code.gs
+const API = 'https://script.google.com/macros/s/AKfycbzMP58flRxIlCkuCbl-JVIl0Pi-zdJkY9Z1dj-GSB-RUewTwXW-IjGQRhTMaBczumj1/exec';
 const tg = window.Telegram ? Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
-const S = { src: 'all', v: localStorage.getItem('v') || '', l: localStorage.getItem('l') || '', last: [] };
+const LS = (k, d) => { try { return localStorage.getItem(k) || d; } catch (e) { return d; } };
+const SV = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const S = { src:'all', v:LS('v',''), l:LS('l',''), lang:LS('lang','en'), theme:LS('theme','dark'), versions:[], panel:null, trCache:{} };
+
+const T = {
+ en:{ph:'Search mods…',all:'All',anyV:'Any version',anyL:'Any loader',trending:'🔥 Trending now',popular:'⭐ Most popular',nothing:'Nothing found.<br>Try another query or version.',conn:'Connection error',as:'Searching for',
+     dl:'📥 Download',dlFor:' for ',site:'🌐 Open website',files:'📦 Files',noFiles:'No files for this version / loader',similar:'🔎 Similar mods',noSim:'No similar mods found',desc:'📄 Description',more:'Show full',
+     tr:'🌐 Translate description',chat:'To chat',sent:'File sent to the bot chat',fail:'Could not send — the bot sent a link',forb:'The author disabled direct downloads — open the website',failMod:'Could not load the mod',results:'Results',dls:'downloads',by:'by'},
+ ru:{ph:'Поиск модов…',all:'Все',anyV:'Любая версия',anyL:'Любой загрузчик',trending:'🔥 Сейчас в тренде',popular:'⭐ Самые популярные',nothing:'Ничего не найдено.<br>Попробуй другой запрос или версию.',conn:'Ошибка соединения',as:'Ищу как',
+     dl:'📥 Скачать',dlFor:' для ',site:'🌐 Открыть сайт',files:'📦 Файлы',noFiles:'Нет файлов для этой версии / загрузчика',similar:'🔎 Похожие моды',noSim:'Похожих не нашлось',desc:'📄 Описание',more:'Показать полностью',
+     tr:'🌐 Перевести описание',chat:'В чат',sent:'Файл отправлен в чат с ботом',fail:'Не вышло отправить — бот прислал ссылку',forb:'Автор запретил прямое скачивание — открой сайт',failMod:'Не удалось загрузить мод',results:'Результаты',dls:'скачиваний',by:'автор'},
+ uk:{ph:'Пошук модів…',all:'Усі',anyV:'Будь-яка версія',anyL:'Будь-який завантажувач',trending:'🔥 Зараз у тренді',popular:'⭐ Найпопулярніші',nothing:'Нічого не знайдено.<br>Спробуй інший запит або версію.',conn:'Помилка зʼєднання',as:'Шукаю як',
+     dl:'📥 Завантажити',dlFor:' для ',site:'🌐 Відкрити сайт',files:'📦 Файли',noFiles:'Немає файлів для цієї версії / завантажувача',similar:'🔎 Схожі моди',noSim:'Схожих не знайшлося',desc:'📄 Опис',more:'Показати повністю',
+     tr:'🌐 Перекласти опис',chat:'У чат',sent:'Файл надіслано в чат з ботом',fail:'Не вдалося надіслати — бот надіслав посилання',forb:'Автор заборонив пряме завантаження — відкрий сайт',failMod:'Не вдалося завантажити мод',results:'Результати',dls:'завантажень',by:'автор'}
+};
+const t = k => (T[S.lang] || T.en)[k];
+const LANGS = [['en','English'],['ru','Русский'],['uk','Українська']];
+const LOADERS = ['fabric','forge','neoforge','quilt'];
+
 const $ = s => document.querySelector(s);
 const esc = s => String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : (n||0);
 const badge = s => `<span class="badge ${s}">${s === 'mr' ? 'MODRINTH' : 'CURSEFORGE'}</span>`;
 const haptic = () => tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light');
-function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
-async function api(params){ const r = await fetch(API + '?' + new URLSearchParams(params)); return r.json(); }
+const openURL = u => tg ? tg.openLink(u) : window.open(u);
+function toast(m){ const el=$('#toast'); el.textContent=m; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2400); }
+async function api(p){ const r = await fetch(API + '?' + new URLSearchParams(p)); return r.json(); }
 
-// versions list from Modrinth
-fetch('https://api.modrinth.com/v2/tag/game_version').then(r=>r.json()).then(list=>{
-  list.filter(v=>v.version_type==='release').slice(0,40).forEach(v=>{ const o=document.createElement('option'); o.textContent=v.version; $('#ver').appendChild(o); });
-  $('#ver').value = S.v;
-});
-$('#ldr').value = S.l;
-$('#ver').onchange = e => { S.v = e.target.value; localStorage.setItem('v', S.v); rerun(); };
-$('#ldr').onchange = e => { S.l = e.target.value; localStorage.setItem('l', S.l); rerun(); };
-document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
-  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); S.src = c.dataset.src; haptic(); rerun();
-});
-$('#f').onsubmit = e => { e.preventDefault(); $('#q').blur(); run(); };
-function rerun(){ if ($('#q').value.trim()) run(); }
+// ---------- translation of mod texts (when language is not English) ----------
+async function translateTexts(arr){
+  if (S.lang === 'en' || !arr.length) return arr;
+  const need = arr.filter(x => x && !S.trCache[S.lang + x]);
+  for (let k = 0; k < need.length; k += 12) {
+    const part = need.slice(k, k + 12);
+    try {
+      const r = await api({ a:'tr', to:S.lang, text: part.join('\n¶\n') });
+      (r.text || '').split(/\n?¶\n?/).forEach((v, i) => { if (part[i]) S.trCache[S.lang + part[i]] = v.trim(); });
+    } catch (e) {}
+  }
+  return arr.map(x => S.trCache[S.lang + x] || x);
+}
+async function translateCards(root){
+  if (S.lang === 'en') return;
+  const els = [...root.querySelectorAll('.d[data-o]')];
+  const out = await translateTexts(els.map(e => e.dataset.o));
+  els.forEach((e, i) => e.textContent = out[i]);
+}
 
+// ---------- theme / language ----------
+function applyTheme(){
+  document.documentElement.dataset.theme = S.theme;
+  $('#themeBtn').textContent = S.theme === 'dark' ? '🌙' : '☀️';
+  const bg = S.theme === 'dark' ? '#0d0f14' : '#f4f6fa';
+  if (tg && tg.setHeaderColor) { try { tg.setHeaderColor(bg); tg.setBackgroundColor(bg); } catch (e) {} }
+}
+function applyLang(){
+  document.documentElement.lang = S.lang;
+  $('#langBtn').textContent = S.lang.toUpperCase();
+  $('#q').placeholder = t('ph');
+  document.querySelectorAll('[data-i]').forEach(e => e.textContent = t(e.dataset.i));
+  $('#verBtn span').textContent = S.v || t('anyV');
+  $('#ldrBtn span').textContent = S.l ? S.l[0].toUpperCase() + S.l.slice(1) : t('anyL');
+  $('#verBtn').classList.toggle('on', !!S.v); $('#ldrBtn').classList.toggle('on', !!S.l);
+}
+$('#themeBtn').onclick = () => { S.theme = S.theme === 'dark' ? 'light' : 'dark'; SV('theme', S.theme); haptic(); applyTheme(); };
+
+// ---------- expandable column picker ----------
+function openPanel(kind){
+  const panel = $('#panel');
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('open'));
+  if (S.panel === kind) { S.panel = null; panel.classList.remove('open'); return; }
+  S.panel = kind; haptic();
+  let items, cur;
+  if (kind === 'v') { items = [['', t('anyV')]].concat(S.versions.map(v => [v, v])); cur = S.v; $('#verBtn').classList.add('open'); }
+  else if (kind === 'l') { items = [['', t('anyL')]].concat(LOADERS.map(l => [l, l[0].toUpperCase() + l.slice(1)])); cur = S.l; $('#ldrBtn').classList.add('open'); }
+  else { items = LANGS; cur = S.lang; }
+  $('#plist').innerHTML = items.map(([val, label]) => `<div class="pitem${val === cur ? ' on' : ''}" data-val="${esc(val)}">${esc(label)}</div>`).join('');
+  $('#plist').scrollTop = 0;
+  $('#plist').querySelectorAll('.pitem').forEach(el => el.onclick = () => pick(kind, el.dataset.val));
+  panel.classList.add('open');
+}
+function pick(kind, val){
+  haptic(); S.panel = null; $('#panel').classList.remove('open');
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('open'));
+  if (kind === 'v') { S.v = val; SV('v', val); }
+  else if (kind === 'l') { S.l = val; SV('l', val); }
+  else { S.lang = val; SV('lang', val); }
+  applyLang(); refresh();
+}
+$('#verBtn').onclick = () => openPanel('v');
+$('#ldrBtn').onclick = () => openPanel('l');
+$('#langBtn').onclick = () => openPanel('lang');
+document.querySelectorAll('[data-src]').forEach(c => c.onclick = () => {
+  document.querySelectorAll('[data-src]').forEach(x => x.classList.remove('on')); c.classList.add('on'); S.src = c.dataset.src; haptic(); refresh();
+});
+$('#f').onsubmit = e => { e.preventDefault(); $('#q').blur(); refresh(); };
+$('#q').oninput = () => { if (!$('#q').value.trim()) home(); };
+function refresh(){ $('#q').value.trim() ? run() : home(); }
+
+fetch('https://api.modrinth.com/v2/tag/game_version').then(r => r.json()).then(list => {
+  S.versions = list.filter(v => v.version_type === 'release').map(v => v.version);
+}).catch(() => {});
+
+// ---------- home: popular mods ----------
+function mrPopular(limit, offset){
+  const facets = [['project_type:mod']];
+  if (S.v) facets.push(['versions:' + S.v]);
+  if (S.l) facets.push(['categories:' + S.l]);
+  return fetch(`https://api.modrinth.com/v2/search?index=downloads&limit=${limit}&offset=${offset||0}&facets=${encodeURIComponent(JSON.stringify(facets))}`)
+    .then(r => r.json()).then(d => d.hits.map(h => ({ src:'mr', id:h.project_id, title:h.title, author:h.author, desc:h.description, icon:h.icon_url, downloads:h.downloads })));
+}
+function mqHTML(m){ return `<div class="mq" data-src="${m.src}" data-id="${m.id}"><img src="${esc(m.icon)}" onerror="this.style.visibility='hidden'"><div><b>${esc(m.title)}</b><span>⬇️ ${fmt(m.downloads)}</span></div></div>`; }
+async function home(){
+  const R = $('#res');
+  R.innerHTML = `<div class="sec">${t('trending')}</div><div class="skel" style="height:58px"></div><div class="skel" style="height:58px"></div><div class="sec">${t('popular')}</div>` + '<div class="skel"></div>'.repeat(4);
+  try {
+    const [a, b] = await Promise.all([mrPopular(30, 0), mrPopular(30, 30)]);
+    if ($('#q').value.trim()) return;
+    const row1 = a.slice(0, 15), row2 = a.slice(15, 30);
+    R.innerHTML = `<div class="sec">${t('trending')}</div>
+      <div class="marquee"><div class="track">${(row1.concat(row1)).map(mqHTML).join('')}</div></div>
+      <div class="marquee"><div class="track rev">${(row2.concat(row2)).map(mqHTML).join('')}</div></div>
+      <div class="sec">${t('popular')}</div>` + a.concat(b).map(cardHTML).join('');
+    bindCards(R); translateCards(R);
+  } catch (e) { R.innerHTML = `<div class="empty"><div>⚠️</div>${t('conn')}</div>`; }
+}
+
+// ---------- search ----------
 function skeleton(el, n){ el.innerHTML = '<div class="skel"></div>'.repeat(n); }
 function cardHTML(m){
   return `<div class="card" data-src="${m.src}" data-id="${m.id}">
     <img class="ico" src="${esc(m.icon)}" onerror="this.style.visibility='hidden'">
     <div class="meta"><div class="t"><span>${esc(m.title)}</span>${badge(m.src)}</div>
-    <div class="a">👤 ${esc(m.author)} · ⬇️ ${fmt(m.downloads)}</div><div class="d">${esc(m.desc)}</div></div></div>`;
+    <div class="a">👤 ${esc(m.author)} · ⬇️ ${fmt(m.downloads)}</div><div class="d" data-o="${esc(m.desc)}">${esc(m.desc)}</div></div></div>`;
 }
 async function run(){
-  const q = $('#q').value.trim(); if (!q) return;
-  skeleton($('#res'), 6);
+  const q = $('#q').value.trim(); if (!q) return home();
+  const R = $('#res'); skeleton(R, 6);
   try {
-    const d = await api({ a:'search', q, v:S.v, l:S.l, src:S.src==='all'?'':S.src });
-    S.last = d.results || [];
-    if (!S.last.length) { $('#res').innerHTML = '<div class="empty"><div>😕</div>Ничего не найдено.<br>Попробуй другой запрос или версию.</div>'; return; }
-    $('#res').innerHTML = (d.query && d.query.toLowerCase() !== q.toLowerCase() ? `<div class="info">Ищу как: «${esc(d.query)}»</div>` : '') + S.last.map(cardHTML).join('');
-    bindCards($('#res'));
-  } catch(e) { $('#res').innerHTML = '<div class="empty"><div>⚠️</div>Ошибка соединения</div>'; }
+    const d = await api({ a:'search', q, v:S.v, l:S.l, src:S.src === 'all' ? '' : S.src });
+    const list = d.results || [];
+    if (!list.length) { R.innerHTML = `<div class="empty"><div>😕</div>${t('nothing')}</div>`; return; }
+    R.innerHTML = (d.query && d.query.toLowerCase() !== q.toLowerCase() ? `<div class="info">${t('as')}: «${esc(d.query)}»</div>` : '') +
+      `<div class="sec">${t('results')}</div>` + list.map(cardHTML).join('');
+    bindCards(R); translateCards(R);
+  } catch (e) { R.innerHTML = `<div class="empty"><div>⚠️</div>${t('conn')}</div>`; }
 }
 function bindCards(root){ root.querySelectorAll('[data-id]').forEach(c => c.onclick = () => { haptic(); openMod(c.dataset.src, c.dataset.id); }); }
 
 // ---------- detail ----------
 async function openMod(src, id){
-  window.scrollTo(0,0); $('#list').style.display='none'; const D=$('#detail'); D.style.display='block';
+  window.scrollTo(0, 0); $('#list').style.display = 'none'; const D = $('#detail'); D.style.display = 'block';
   D.innerHTML = '<div class="skel" style="height:90px"></div><div class="skel"></div><div class="skel" style="height:200px"></div>';
-  if (tg) { tg.BackButton.show(); tg.BackButton.onClick(closeMod); }
-  const p = await api({ a:'project', src, id });
-  if (!p || p.error) { D.innerHTML = '<div class="empty"><div>⚠️</div>Не удалось загрузить мод</div>'; return; }
-  const body = p.body ? DOMPurify.sanitize(src==='mr' ? marked.parse(p.body) : p.body) : '';
+  if (tg) { tg.BackButton.offClick(closeMod); tg.BackButton.show(); tg.BackButton.onClick(closeMod); }
+  const p = await api({ a:'project', src, id }).catch(() => null);
+  if (!p || p.error) { D.innerHTML = `<div class="empty"><div>⚠️</div>${t('failMod')}</div>`; return; }
+  const bodyHTML = p.body ? DOMPurify.sanitize(src === 'mr' ? marked.parse(p.body) : p.body) : '';
+  const [desc] = await translateTexts([p.desc || '']);
   D.innerHTML = `
     <div class="hero"><img class="ico" src="${esc(p.icon)}" onerror="this.style.visibility='hidden'"><div>${badge(src)}<h2>${esc(p.title)}</h2><div class="a">👤 ${esc(p.author)}</div></div></div>
-    <div class="stats"><div class="stat">⬇️ ${fmt(p.downloads)}</div>${(p.loaders||[]).map(l=>`<div class="stat">${esc(l)}</div>`).join('')}</div>
-    <div style="margin-bottom:14px">${esc(p.desc)}</div>
-    <button class="btn" id="dlbtn">📥 Скачать${S.v?' для '+esc(S.v):''}${S.l?' · '+esc(S.l):''}</button>
-    <button class="btn sec" id="site">🌐 Открыть на сайте</button>
+    <div class="stats"><div class="stat">⬇️ ${fmt(p.downloads)} ${t('dls')}</div>${(p.loaders||[]).map(l => `<div class="stat">${esc(l)}</div>`).join('')}</div>
+    <div style="margin-bottom:14px">${esc(desc)}</div>
+    <button class="btn" id="dlbtn">${t('dl')}${S.v ? t('dlFor') + esc(S.v) : ''}${S.l ? ' · ' + esc(S.l) : ''}</button>
+    <button class="btn sec2" id="site">${t('site')}</button>
     <div id="files"></div>
-    <h3>🔎 Похожие моды</h3><div class="row" id="sim"><div class="skel" style="width:120px;height:150px;flex:none"></div><div class="skel" style="width:120px;height:150px;flex:none"></div></div>
-    ${body ? `<h3>📄 Описание</h3><div class="body short" id="body">${body}</div><button class="btn sec" id="more" style="margin-top:8px">Показать полностью</button>` : ''}`;
-  $('#site').onclick = () => tg ? tg.openLink(p.url) : open(p.url);
+    <h3>${t('similar')}</h3><div class="row" id="sim"><div class="skel" style="width:120px;height:150px;flex:none"></div><div class="skel" style="width:120px;height:150px;flex:none"></div></div>
+    ${bodyHTML ? `<h3>${t('desc')}</h3>${S.lang !== 'en' ? `<button class="btn sec2" id="trb">${t('tr')}</button>` : ''}<div class="body short" id="body">${bodyHTML}</div><button class="btn sec2" id="more" style="margin-top:8px">${t('more')}</button>` : ''}`;
+  $('#site').onclick = () => openURL(p.url);
   $('#dlbtn').onclick = () => loadFiles(src, id, p.title);
   if ($('#more')) $('#more').onclick = () => { $('#body').classList.remove('short'); $('#more').remove(); };
-  D.querySelectorAll('.body a').forEach(a => a.onclick = e => { e.preventDefault(); tg ? tg.openLink(a.href) : open(a.href); });
+  if ($('#trb')) $('#trb').onclick = async () => {
+    $('#trb').textContent = '…';
+    try { const r = await api({ a:'tr', to:S.lang, html:'1', text:$('#body').innerHTML.slice(0, 3500) });
+      if (r.text) $('#body').innerHTML = DOMPurify.sanitize(r.text); $('#trb').remove(); bindBodyLinks(); } catch (e) { $('#trb').textContent = t('conn'); }
+  };
+  bindBodyLinks();
   api({ a:'similar', src, id, v:S.v, l:S.l }).then(list => {
-    $('#sim').innerHTML = (list||[]).length ? list.map(m=>`<div class="sim" data-src="${m.src}" data-id="${m.id}"><img src="${esc(m.icon)}" onerror="this.style.visibility='hidden'"><b>${esc(m.title)}</b><span>⬇️ ${fmt(m.downloads)}</span></div>`).join('') : '<div class="info">Похожих не нашлось</div>';
+    $('#sim').innerHTML = (list || []).length ? list.map(m => `<div class="sim" data-src="${m.src}" data-id="${m.id}"><img src="${esc(m.icon)}" onerror="this.style.visibility='hidden'"><b>${esc(m.title)}</b><span>⬇️ ${fmt(m.downloads)}</span></div>`).join('') : `<div class="info">${t('noSim')}</div>`;
     bindCards($('#sim'));
-  });
+  }).catch(() => {});
 }
+function bindBodyLinks(){ document.querySelectorAll('#body a').forEach(a => a.onclick = e => { e.preventDefault(); openURL(a.href); }); }
 async function loadFiles(src, id, title){
-  const F=$('#files'); F.innerHTML='<h3>📦 Файлы</h3><div class="skel" style="height:56px"></div><div class="skel" style="height:56px"></div>';
-  const list = (await api({ a:'files', src, id, v:S.v, l:S.l })).slice(0,15);
-  if (!list.length){ F.innerHTML='<h3>📦 Файлы</h3><div class="info">Нет файлов для выбранной версии/загрузчика</div>'; return; }
-  F.innerHTML = '<h3>📦 Файлы</h3>' + list.map((f,i)=>`<div class="file"><div class="fm"><div class="fn">${esc(f.name)}</div>
-    <div class="fv">${esc((f.mc||[]).slice(0,4).join(', '))} · ${esc((f.loaders||[]).join('/'))} · ${(f.size/1048576).toFixed(1)} МБ</div></div>
-    ${tg && tg.initData ? `<button class="mini" data-chat="${i}">В чат</button>` : ''}<button class="mini sec" data-dl="${i}">⬇️</button></div>`).join('');
-  F.querySelectorAll('[data-dl]').forEach(b => b.onclick = () => { const f=list[b.dataset.dl]; if(!f.url) return toast('Автор запретил прямое скачивание — открой сайт'); tg ? tg.openLink(f.url) : open(f.url); });
+  const F = $('#files'); F.innerHTML = `<h3>${t('files')}</h3><div class="skel" style="height:56px"></div><div class="skel" style="height:56px"></div>`;
+  const list = (await api({ a:'files', src, id, v:S.v, l:S.l }).catch(() => [])).slice(0, 15);
+  if (!list.length) { F.innerHTML = `<h3>${t('files')}</h3><div class="info">${t('noFiles')}</div>`; return; }
+  F.innerHTML = `<h3>${t('files')}</h3>` + list.map((f, i) => `<div class="file"><div class="fm"><div class="fn">${esc(f.name)}</div>
+    <div class="fv">${esc((f.mc||[]).slice(0,4).join(', '))} · ${esc((f.loaders||[]).join('/'))} · ${((f.size||0)/1048576).toFixed(1)} MB</div></div>
+    ${tg && tg.initData ? `<button class="mini" data-chat="${i}">${t('chat')}</button>` : ''}<button class="mini g" data-dl="${i}">⬇️</button></div>`).join('');
+  F.querySelectorAll('[data-dl]').forEach(b => b.onclick = () => { const f = list[b.dataset.dl]; if (!f.url) return toast(t('forb')); openURL(f.url); });
   F.querySelectorAll('[data-chat]').forEach(b => b.onclick = async () => {
-    const f=list[b.dataset.chat]; b.textContent='…'; haptic();
-    const r = await api({ a:'send', init: tg.initData, url:f.url, name:f.name, file:f.file, size:f.size, mc:(f.mc||[]).join(','), title });
-    b.textContent = r.ok ? '✅' : '⚠️'; toast(r.ok ? 'Файл отправлен в чат с ботом' : 'Не вышло отправить — бот прислал ссылку');
+    const f = list[b.dataset.chat]; b.textContent = '…'; haptic();
+    const r = await api({ a:'send', init:tg.initData, url:f.url, name:f.name, file:f.file, size:f.size, mc:(f.mc||[]).join(','), title }).catch(() => ({}));
+    b.textContent = r.ok ? '✅' : '⚠️'; toast(r.ok ? t('sent') : t('fail'));
   });
-  F.scrollIntoView({behavior:'smooth'});
+  F.scrollIntoView({ behavior:'smooth' });
 }
-function closeMod(){ $('#detail').style.display='none'; $('#list').style.display='block'; if (tg) { tg.BackButton.hide(); tg.BackButton.offClick(closeMod); } }
+function closeMod(){ $('#detail').style.display = 'none'; $('#list').style.display = 'block'; if (tg) { tg.BackButton.hide(); tg.BackButton.offClick(closeMod); } }
+
+applyTheme(); applyLang(); home();
 </script>
 </body>
 </html>
