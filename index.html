@@ -86,6 +86,11 @@ h3{font-size:16px;margin:18px 0 10px}
 .body a{color:var(--acc)}
 .body.short{max-height:320px;position:relative}
 .body.short:after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(transparent,var(--bg2))}
+.lb{position:fixed;inset:0;z-index:20;background:#000e;display:none;align-items:center;justify-content:center;padding:24px}
+.lb.show{display:flex}
+.lb img{max-width:100%;max-height:80vh;border-radius:20px;image-rendering:auto;box-shadow:0 10px 40px #0008}
+.lb button{position:absolute;top:16px;right:16px;width:44px;height:44px;border-radius:50%;border:0;background:#ffffff26;color:#fff;font-size:22px}
+.hero .ico{cursor:zoom-in}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(100px);background:#000d;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;transition:transform .25s;z-index:10}
 .toast.show{transform:translateX(-50%) translateY(0)}
 </style>
@@ -101,14 +106,15 @@ h3{font-size:16px;margin:18px 0 10px}
       <button class="chip" data-src="mr">Modrinth</button>
       <button class="chip" data-src="cf">CurseForge</button>
       <button class="chip" id="verBtn"><span></span><i class="ar">▼</i></button>
-      <button class="chip" id="ldrBtn"><span></span><i class="ar">▼</i></button>
     </div>
+    <div class="filters" id="ldrRow"></div>
     <div id="panel"><div class="plist" id="plist"></div></div>
   </header>
   <main id="res"></main>
 </div>
 <div id="detail"></div>
 <div class="toast" id="toast"></div>
+<div class="lb" id="lb"><img id="lbImg" alt=""><button id="lbX" aria-label="Close">✕</button></div>
 
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbzMP58flRxIlCkuCbl-JVIl0Pi-zdJkY9Z1dj-GSB-RUewTwXW-IjGQRhTMaBczumj1/exec';
@@ -119,19 +125,20 @@ const SV = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 const S = { src:'all', v:LS('v',''), l:LS('l',''), lang:LS('lang','en'), theme:LS('theme','dark'), versions:[], panel:null, trCache:{} };
 
 const T = {
- en:{ph:'Search mods…',all:'All',anyV:'Any version',anyL:'Any loader',trending:'🔥 Trending now',popular:'⭐ Most popular',nothing:'Nothing found.<br>Try another query or version.',conn:'Connection error',as:'Searching for',
+ en:{ph:'Search mods…',all:'All',anyV:'Any version',anyL:'All loaders',trending:'🔥 Trending now',popular:'⭐ Most popular',nothing:'Nothing found.<br>Try another query or version.',conn:'Connection error',as:'Searching for',
      dl:'📥 Download',dlFor:' for ',site:'🌐 Open website',files:'📦 Files',noFiles:'No files for this version / loader',similar:'🔎 Similar mods',noSim:'No similar mods found',desc:'📄 Description',more:'Show full',
-     tr:'🌐 Translate description',chat:'To chat',sent:'File sent to the bot chat',fail:'Could not send — the bot sent a link',forb:'The author disabled direct downloads — open the website',failMod:'Could not load the mod',results:'Results',dls:'downloads',by:'by'},
- ru:{ph:'Поиск модов…',all:'Все',anyV:'Любая версия',anyL:'Любой загрузчик',trending:'🔥 Сейчас в тренде',popular:'⭐ Самые популярные',nothing:'Ничего не найдено.<br>Попробуй другой запрос или версию.',conn:'Ошибка соединения',as:'Ищу как',
+     tr:'🌐 Translate description',chat:'To chat',sent:'File sent to the bot chat',fail:'Could not send — the bot sent a link',forb:'The author disabled direct downloads — open the website',failMod:'Could not load the mod',results:'Results',dls:'downloads',by:'by',orig:'📄 Show original',showTr:'🌐 Show translation'},
+ ru:{ph:'Поиск модов…',all:'Все',anyV:'Любая версия',anyL:'Все загрузчики',trending:'🔥 Сейчас в тренде',popular:'⭐ Самые популярные',nothing:'Ничего не найдено.<br>Попробуй другой запрос или версию.',conn:'Ошибка соединения',as:'Ищу как',
      dl:'📥 Скачать',dlFor:' для ',site:'🌐 Открыть сайт',files:'📦 Файлы',noFiles:'Нет файлов для этой версии / загрузчика',similar:'🔎 Похожие моды',noSim:'Похожих не нашлось',desc:'📄 Описание',more:'Показать полностью',
-     tr:'🌐 Перевести описание',chat:'В чат',sent:'Файл отправлен в чат с ботом',fail:'Не вышло отправить — бот прислал ссылку',forb:'Автор запретил прямое скачивание — открой сайт',failMod:'Не удалось загрузить мод',results:'Результаты',dls:'скачиваний',by:'автор'},
- uk:{ph:'Пошук модів…',all:'Усі',anyV:'Будь-яка версія',anyL:'Будь-який завантажувач',trending:'🔥 Зараз у тренді',popular:'⭐ Найпопулярніші',nothing:'Нічого не знайдено.<br>Спробуй інший запит або версію.',conn:'Помилка зʼєднання',as:'Шукаю як',
+     tr:'🌐 Перевести описание',chat:'В чат',sent:'Файл отправлен в чат с ботом',fail:'Не вышло отправить — бот прислал ссылку',forb:'Автор запретил прямое скачивание — открой сайт',failMod:'Не удалось загрузить мод',results:'Результаты',dls:'скачиваний',by:'автор',orig:'📄 Показать оригинал',showTr:'🌐 Показать перевод'},
+ uk:{ph:'Пошук модів…',all:'Усі',anyV:'Будь-яка версія',anyL:'Усі завантажувачі',trending:'🔥 Зараз у тренді',popular:'⭐ Найпопулярніші',nothing:'Нічого не знайдено.<br>Спробуй інший запит або версію.',conn:'Помилка зʼєднання',as:'Шукаю як',
      dl:'📥 Завантажити',dlFor:' для ',site:'🌐 Відкрити сайт',files:'📦 Файли',noFiles:'Немає файлів для цієї версії / завантажувача',similar:'🔎 Схожі моди',noSim:'Схожих не знайшлося',desc:'📄 Опис',more:'Показати повністю',
-     tr:'🌐 Перекласти опис',chat:'У чат',sent:'Файл надіслано в чат з ботом',fail:'Не вдалося надіслати — бот надіслав посилання',forb:'Автор заборонив пряме завантаження — відкрий сайт',failMod:'Не вдалося завантажити мод',results:'Результати',dls:'завантажень',by:'автор'}
+     tr:'🌐 Перекласти опис',chat:'У чат',sent:'Файл надіслано в чат з ботом',fail:'Не вдалося надіслати — бот надіслав посилання',forb:'Автор заборонив пряме завантаження — відкрий сайт',failMod:'Не вдалося завантажити мод',results:'Результати',dls:'завантажень',by:'автор',orig:'📄 Показати оригінал',showTr:'🌐 Показати переклад'}
 };
 const t = k => (T[S.lang] || T.en)[k];
 const LANGS = [['en','English'],['ru','Русский'],['uk','Українська']];
 const LOADERS = ['fabric','forge','neoforge','quilt'];
+const LNAME = { fabric:'Fabric', forge:'Forge', neoforge:'NeoForge', quilt:'Quilt' };
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -146,13 +153,13 @@ async function api(p){ const r = await fetch(API + '?' + new URLSearchParams(p))
 async function translateTexts(arr){
   if (S.lang === 'en' || !arr.length) return arr;
   const need = arr.filter(x => x && !S.trCache[S.lang + x]);
-  for (let k = 0; k < need.length; k += 12) {
-    const part = need.slice(k, k + 12);
+  const parts = []; for (let k = 0; k < need.length; k += 10) parts.push(need.slice(k, k + 10));
+  await Promise.all(parts.map(async part => {
     try {
       const r = await api({ a:'tr', to:S.lang, text: part.join('\n¶\n') });
       (r.text || '').split(/\n?¶\n?/).forEach((v, i) => { if (part[i]) S.trCache[S.lang + part[i]] = v.trim(); });
     } catch (e) {}
-  }
+  }));
   return arr.map(x => S.trCache[S.lang + x] || x);
 }
 async function translateCards(root){
@@ -175,8 +182,10 @@ function applyLang(){
   $('#q').placeholder = t('ph');
   document.querySelectorAll('[data-i]').forEach(e => e.textContent = t(e.dataset.i));
   $('#verBtn span').textContent = S.v || t('anyV');
-  $('#ldrBtn span').textContent = S.l ? S.l[0].toUpperCase() + S.l.slice(1) : t('anyL');
-  $('#verBtn').classList.toggle('on', !!S.v); $('#ldrBtn').classList.toggle('on', !!S.l);
+  $('#verBtn').classList.toggle('on', !!S.v);
+  $('#ldrRow').innerHTML = [['', t('anyL')]].concat(LOADERS.map(l => [l, LNAME[l]])).map(([val, label]) =>
+    `<button class="chip${S.l === val ? ' on' : ''}" data-l="${val}">${label}</button>`).join('');
+  $('#ldrRow').querySelectorAll('[data-l]').forEach(b => b.onclick = () => { S.l = b.dataset.l; SV('l', S.l); haptic(); applyLang(); refresh(); });
 }
 $('#themeBtn').onclick = () => { S.theme = S.theme === 'dark' ? 'light' : 'dark'; SV('theme', S.theme); haptic(); applyTheme(); };
 
@@ -188,7 +197,6 @@ function openPanel(kind){
   S.panel = kind; haptic();
   let items, cur;
   if (kind === 'v') { items = [['', t('anyV')]].concat(S.versions.map(v => [v, v])); cur = S.v; $('#verBtn').classList.add('open'); }
-  else if (kind === 'l') { items = [['', t('anyL')]].concat(LOADERS.map(l => [l, l[0].toUpperCase() + l.slice(1)])); cur = S.l; $('#ldrBtn').classList.add('open'); }
   else { items = LANGS; cur = S.lang; }
   $('#plist').innerHTML = items.map(([val, label]) => `<div class="pitem${val === cur ? ' on' : ''}" data-val="${esc(val)}">${esc(label)}</div>`).join('');
   $('#plist').scrollTop = 0;
@@ -199,12 +207,10 @@ function pick(kind, val){
   haptic(); S.panel = null; $('#panel').classList.remove('open');
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('open'));
   if (kind === 'v') { S.v = val; SV('v', val); }
-  else if (kind === 'l') { S.l = val; SV('l', val); }
   else { S.lang = val; SV('lang', val); }
   applyLang(); refresh();
 }
 $('#verBtn').onclick = () => openPanel('v');
-$('#ldrBtn').onclick = () => openPanel('l');
 $('#langBtn').onclick = () => openPanel('lang');
 document.querySelectorAll('[data-src]').forEach(c => c.onclick = () => {
   document.querySelectorAll('[data-src]').forEach(x => x.classList.remove('on')); c.classList.add('on'); S.src = c.dataset.src; haptic(); refresh();
@@ -272,29 +278,46 @@ async function openMod(src, id){
   if (!p || p.error) { D.innerHTML = `<div class="empty"><div>⚠️</div>${t('failMod')}</div>`; return; }
   const bodyHTML = p.body ? DOMPurify.sanitize(src === 'mr' ? marked.parse(p.body) : p.body) : '';
   const [desc] = await translateTexts([p.desc || '']);
+  const st = { body: bodyHTML, bodyTr: null, tr: S.lang !== 'en' };
   D.innerHTML = `
     <div class="hero"><img class="ico" src="${esc(p.icon)}" onerror="this.style.visibility='hidden'"><div>${badge(src)}<h2>${esc(p.title)}</h2><div class="a">👤 ${esc(p.author)}</div></div></div>
     <div class="stats"><div class="stat">⬇️ ${fmt(p.downloads)} ${t('dls')}</div>${(p.loaders||[]).map(l => `<div class="stat">${esc(l)}</div>`).join('')}</div>
-    <div style="margin-bottom:14px">${esc(desc)}</div>
+    <div style="margin-bottom:14px" id="sdesc">${esc(desc)}</div>
+    ${S.lang !== 'en' ? `<button class="btn sec2" id="trb">${bodyHTML ? t('tr') : t('orig')}</button>` : ''}
     <button class="btn" id="dlbtn">${t('dl')}${S.v ? t('dlFor') + esc(S.v) : ''}${S.l ? ' · ' + esc(S.l) : ''}</button>
     <button class="btn sec2" id="site">${t('site')}</button>
     <div id="files"></div>
     <h3>${t('similar')}</h3><div class="row" id="sim"><div class="skel" style="width:120px;height:150px;flex:none"></div><div class="skel" style="width:120px;height:150px;flex:none"></div></div>
-    ${bodyHTML ? `<h3>${t('desc')}</h3>${S.lang !== 'en' ? `<button class="btn sec2" id="trb">${t('tr')}</button>` : ''}<div class="body short" id="body">${bodyHTML}</div><button class="btn sec2" id="more" style="margin-top:8px">${t('more')}</button>` : ''}`;
+    ${bodyHTML ? `<h3>${t('desc')}</h3><div class="body short" id="body">${bodyHTML}</div><button class="btn sec2" id="more" style="margin-top:8px">${t('more')}</button>` : ''}`;
   $('#site').onclick = () => openURL(p.url);
   $('#dlbtn').onclick = () => loadFiles(src, id, p.title);
   if ($('#more')) $('#more').onclick = () => { $('#body').classList.remove('short'); $('#more').remove(); };
-  if ($('#trb')) $('#trb').onclick = async () => {
-    $('#trb').textContent = '…';
-    try { const r = await api({ a:'tr', to:S.lang, html:'1', text:$('#body').innerHTML.slice(0, 3500) });
-      if (r.text) $('#body').innerHTML = DOMPurify.sanitize(r.text); $('#trb').remove(); bindBodyLinks(); } catch (e) { $('#trb').textContent = t('conn'); }
+  const showMode = () => {
+    $('#sdesc').textContent = st.tr ? desc : (p.desc || '');
+    if ($('#body')) { $('#body').innerHTML = st.tr && st.bodyTr ? st.bodyTr : st.body; bindBodyLinks(); }
+    $('#trb').textContent = st.tr ? t('orig') : t('showTr');
   };
+  if ($('#trb')) $('#trb').onclick = async () => {
+    haptic();
+    if (st.body && st.bodyTr === null) {            // first press: translate the full description
+      $('#trb').textContent = '…';
+      try { const r = await api({ a:'tr', to:S.lang, html:'1', text: st.body.slice(0, 3500) });
+        st.bodyTr = r.text ? DOMPurify.sanitize(r.text) : st.body; } catch (e) { $('#trb').textContent = t('conn'); return; }
+      st.tr = true; return showMode();
+    }
+    st.tr = !st.tr; showMode();
+  };
+  D.querySelector('.hero .ico').onclick = () => openLB(p.iconBig || p.icon);
   bindBodyLinks();
   api({ a:'similar', src, id, v:S.v, l:S.l }).then(list => {
     $('#sim').innerHTML = (list || []).length ? list.map(m => `<div class="sim" data-src="${m.src}" data-id="${m.id}"><img src="${esc(m.icon)}" onerror="this.style.visibility='hidden'"><b>${esc(m.title)}</b><span>⬇️ ${fmt(m.downloads)}</span></div>`).join('') : `<div class="info">${t('noSim')}</div>`;
     bindCards($('#sim'));
   }).catch(() => {});
 }
+function openLB(src){ if (!src) return; haptic(); $('#lbImg').src = src; $('#lb').classList.add('show');
+  if (tg) { tg.BackButton.offClick(closeMod); tg.BackButton.onClick(closeLB); } }
+function closeLB(){ $('#lb').classList.remove('show'); if (tg) { tg.BackButton.offClick(closeLB); tg.BackButton.onClick(closeMod); } }
+$('#lbX').onclick = closeLB; $('#lb').onclick = e => { if (e.target.id === 'lb') closeLB(); };
 function bindBodyLinks(){ document.querySelectorAll('#body a').forEach(a => a.onclick = e => { e.preventDefault(); openURL(a.href); }); }
 async function loadFiles(src, id, title){
   const F = $('#files'); F.innerHTML = `<h3>${t('files')}</h3><div class="skel" style="height:56px"></div><div class="skel" style="height:56px"></div>`;
