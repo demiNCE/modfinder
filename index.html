@@ -22,6 +22,12 @@ header{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 14px 10
 .search input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:12px 14px;font-size:16px;outline:none}
 .search input:focus{border-color:var(--acc)}
 .search button{background:var(--acc);color:var(--acctx);border:0;border-radius:14px;padding:0 16px;font-size:18px}
+.search .ai{background:var(--bg2);border:1px solid var(--line);padding:0 13px}
+.aibox{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.aibox.open{max-height:60vh;overflow-y:auto;margin-top:10px}
+.aibox textarea{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:12px 14px;font:inherit;font-size:15px;outline:none;resize:none;margin-bottom:8px}
+.aibox textarea:focus{border-color:var(--acc)}
+.aichips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .filters{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none}
 .filters::-webkit-scrollbar{display:none}
 .chip{flex:none;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;white-space:nowrap}
@@ -102,13 +108,14 @@ h3{font-size:16px;margin:18px 0 10px}
   <header>
     <div class="top"><div class="logo">🧩</div><b>ModFinder</b>
       <button class="ibtn" id="langBtn">EN</button><button class="ibtn" id="themeBtn">🌙</button></div>
-    <form class="search" id="f"><input id="q" autocomplete="off"><button>🔎</button></form>
+    <form class="search" id="f"><input id="q" autocomplete="off"><button type="button" class="ai" id="aiBtn">✨</button><button>🔎</button></form>
     <div class="filters pick">
       <button class="chip" id="srcBtn"><span></span><i class="ar">▼</i></button>
       <button class="chip" id="verBtn"><span></span><i class="ar">▼</i></button>
       <button class="chip" id="ldrBtn"><span></span><i class="ar">▼</i></button>
     </div>
     <div id="panel"><div class="plist" id="plist"></div></div>
+    <div id="aiBox" class="aibox"></div>
   </header>
   <main id="res"></main>
 </div>
@@ -127,13 +134,13 @@ const S = { src:'all', v:LS('v',''), l:LS('l',''), lang:LS('lang','en'), theme:L
 const T = {
  en:{ph:'Search mods…',all:'All',allS:'All sites',anyV:'Any version',anyL:'All loaders',trending:'🔥 Trending now',popular:'⭐ Most popular',nothing:'Nothing found.<br>Try another query or version.',conn:'Connection error',as:'Searching for',
      dl:'📥 Download',dlFor:' for ',site:'🌐 Open website',files:'📦 Files',noFiles:'No files for this version / loader',similar:'🔎 Similar mods',noSim:'No similar mods found',desc:'📄 Description',more:'Show full',
-     tr:'🌐 Translate description',chat:'To chat',sent:'File sent to the bot chat',fail:'Could not send — the bot sent a link',forb:'The author disabled direct downloads — open the website',failMod:'Could not load the mod',results:'Results',dls:'downloads',by:'by',orig:'📄 Show original',showTr:'🌐 Show translation'},
+     tr:'🌐 Translate description',chat:'To chat',sent:'File sent to the bot chat',fail:'Could not send — the bot sent a link',forb:'The author disabled direct downloads — open the website',failMod:'Could not load the mod',results:'Results',dls:'downloads',by:'by',orig:'📄 Show original',showTr:'🌐 Show translation',aiPh:'Describe the mod you want… e.g. “a mod with many kinds of sniffers”',aiGo:'✨ Get search ideas',aiAll:'🔎 Search all ideas',aiHint:'Tap an idea to search:',aiErr:'AI is busy right now, try again in a moment'},
  ru:{ph:'Поиск модов…',all:'Все',allS:'Все сайты',anyV:'Любая версия',anyL:'Все загрузчики',trending:'🔥 Сейчас в тренде',popular:'⭐ Самые популярные',nothing:'Ничего не найдено.<br>Попробуй другой запрос или версию.',conn:'Ошибка соединения',as:'Ищу как',
      dl:'📥 Скачать',dlFor:' для ',site:'🌐 Открыть сайт',files:'📦 Файлы',noFiles:'Нет файлов для этой версии / загрузчика',similar:'🔎 Похожие моды',noSim:'Похожих не нашлось',desc:'📄 Описание',more:'Показать полностью',
-     tr:'🌐 Перевести описание',chat:'В чат',sent:'Файл отправлен в чат с ботом',fail:'Не вышло отправить — бот прислал ссылку',forb:'Автор запретил прямое скачивание — открой сайт',failMod:'Не удалось загрузить мод',results:'Результаты',dls:'скачиваний',by:'автор',orig:'📄 Показать оригинал',showTr:'🌐 Показать перевод'},
+     tr:'🌐 Перевести описание',chat:'В чат',sent:'Файл отправлен в чат с ботом',fail:'Не вышло отправить — бот прислал ссылку',forb:'Автор запретил прямое скачивание — открой сайт',failMod:'Не удалось загрузить мод',results:'Результаты',dls:'скачиваний',by:'автор',orig:'📄 Показать оригинал',showTr:'🌐 Показать перевод',aiPh:'Опиши, какой мод ищешь… например «мод, где много разных нюхачей»',aiGo:'✨ Подобрать запросы',aiAll:'🔎 Искать по всем',aiHint:'Нажми на запрос, чтобы искать:',aiErr:'ИИ сейчас занят, попробуй ещё раз'},
  uk:{ph:'Пошук модів…',all:'Усі',allS:'Усі сайти',anyV:'Будь-яка версія',anyL:'Усі завантажувачі',trending:'🔥 Зараз у тренді',popular:'⭐ Найпопулярніші',nothing:'Нічого не знайдено.<br>Спробуй інший запит або версію.',conn:'Помилка зʼєднання',as:'Шукаю як',
      dl:'📥 Завантажити',dlFor:' для ',site:'🌐 Відкрити сайт',files:'📦 Файли',noFiles:'Немає файлів для цієї версії / завантажувача',similar:'🔎 Схожі моди',noSim:'Схожих не знайшлося',desc:'📄 Опис',more:'Показати повністю',
-     tr:'🌐 Перекласти опис',chat:'У чат',sent:'Файл надіслано в чат з ботом',fail:'Не вдалося надіслати — бот надіслав посилання',forb:'Автор заборонив пряме завантаження — відкрий сайт',failMod:'Не вдалося завантажити мод',results:'Результати',dls:'завантажень',by:'автор',orig:'📄 Показати оригінал',showTr:'🌐 Показати переклад'}
+     tr:'🌐 Перекласти опис',chat:'У чат',sent:'Файл надіслано в чат з ботом',fail:'Не вдалося надіслати — бот надіслав посилання',forb:'Автор заборонив пряме завантаження — відкрий сайт',failMod:'Не вдалося завантажити мод',results:'Результати',dls:'завантажень',by:'автор',orig:'📄 Показати оригінал',showTr:'🌐 Показати переклад',aiPh:'Опиши, який мод шукаєш… наприклад «мод, де багато різних нюхачів»',aiGo:'✨ Підібрати запити',aiAll:'🔎 Шукати за всіма',aiHint:'Натисни на запит, щоб шукати:',aiErr:'ШІ зараз зайнятий, спробуй ще раз'}
 };
 const t = k => (T[S.lang] || T.en)[k];
 const LANGS = [['en','English'],['ru','Русский'],['uk','Українська']];
@@ -271,6 +278,37 @@ async function run(){
     bindCards(R); translateCards(R);
   } catch (e) { R.innerHTML = `<div class="empty"><div>⚠️</div>${t('conn')}</div>`; }
 }
+// ---------- AI search ideas ----------
+function openAI(prefill){
+  const b = $('#aiBox');
+  if (b.classList.contains('open') && !prefill) { b.classList.remove('open'); return; }
+  b.innerHTML = `<textarea id="aiText" rows="2" placeholder="${esc(t('aiPh'))}"></textarea><button class="btn" id="aiGo">${t('aiGo')}</button><div id="aiRes"></div>`;
+  b.classList.add('open'); $('#aiGo').onclick = aiRun; haptic();
+  if (prefill) showAI(prefill, ''); else $('#aiText').focus();
+}
+async function aiRun(){
+  const txt = $('#aiText').value.trim(); if (!txt) return; haptic(); $('#aiText').blur();
+  $('#aiRes').innerHTML = '<div class="skel" style="height:44px"></div>';
+  try { const r = await api({ a:'ai', text: txt }); if (!r.queries || !r.queries.length) throw 0; showAI(r.queries, r.heard); }
+  catch (e) { $('#aiRes').innerHTML = `<div class="info">${t('aiErr')}</div>`; }
+}
+function showAI(qs, heard){
+  $('#aiRes').innerHTML = (heard ? `<div class="info">“${esc(heard)}”</div>` : '') + `<div class="info">${t('aiHint')}</div><div class="aichips">` +
+    qs.map(q => `<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join('') + `</div><button class="btn sec2" id="aiAll">${t('aiAll')}</button>`;
+  $('#aiRes').querySelectorAll('[data-q]').forEach(c => c.onclick = () => { $('#q').value = c.dataset.q; haptic(); run(); });
+  $('#aiAll').onclick = () => runMulti(qs);
+}
+async function runMulti(qs){
+  const R = $('#res'); skeleton(R, 6); haptic();
+  try {
+    const all = await Promise.all(qs.map(q => api({ a:'search', q, v:S.v, l:S.l, src:S.src === 'all' ? '' : S.src }).catch(() => ({ results: [] }))));
+    const seen = new Set(), list = [], n = Math.max(0, ...all.map(d => (d.results || []).length));
+    for (let i = 0; i < n; i++) for (const d of all) { const m = (d.results || [])[i]; if (m && !seen.has(m.src + m.id)) { seen.add(m.src + m.id); list.push(m); } }
+    if (!list.length) { R.innerHTML = `<div class="empty"><div>😕</div>${t('nothing')}</div>`; return; }
+    R.innerHTML = `<div class="sec">${t('results')}</div>` + list.map(cardHTML).join(''); bindCards(R); translateCards(R);
+  } catch (e) { R.innerHTML = `<div class="empty"><div>⚠️</div>${t('conn')}</div>`; }
+}
+$('#aiBtn').onclick = () => openAI();
 function bindCards(root){ root.querySelectorAll('[data-id]').forEach(c => c.onclick = () => { haptic(); openMod(c.dataset.src, c.dataset.id); }); }
 
 // ---------- detail ----------
@@ -340,7 +378,9 @@ async function loadFiles(src, id, title){
 }
 function closeMod(){ $('#detail').style.display = 'none'; $('#list').style.display = 'block'; if (tg) { tg.BackButton.hide(); tg.BackButton.offClick(closeMod); } }
 
-applyTheme(); applyLang(); home();
+applyTheme(); applyLang();
+const aiParam = new URLSearchParams(location.search).get('ai');
+if (aiParam) { const qs = aiParam.split('|').filter(Boolean); openAI(qs); runMulti(qs); } else home();
 </script>
 </body>
 </html>
