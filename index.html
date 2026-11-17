@@ -28,6 +28,8 @@ header{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 14px 10
 .chip.on{border-color:var(--acc);color:var(--acc)}
 .chip .ar{display:inline-block;margin-left:4px;transition:transform .2s;font-size:10px}
 .chip.open .ar{transform:rotate(180deg)}
+.pick .chip{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;padding:8px 8px;font-size:12.5px}
+.pick .chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #panel{max-height:0;overflow:hidden;transition:max-height .25s ease}
 #panel.open{max-height:50vh}
 .plist{margin-top:10px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;max-height:calc(50vh - 12px);overflow-y:auto}
@@ -101,13 +103,11 @@ h3{font-size:16px;margin:18px 0 10px}
     <div class="top"><div class="logo">🧩</div><b>ModFinder</b>
       <button class="ibtn" id="langBtn">EN</button><button class="ibtn" id="themeBtn">🌙</button></div>
     <form class="search" id="f"><input id="q" autocomplete="off"><button>🔎</button></form>
-    <div class="filters">
-      <button class="chip on" data-src="all" data-i="all"></button>
-      <button class="chip" data-src="mr">Modrinth</button>
-      <button class="chip" data-src="cf">CurseForge</button>
+    <div class="filters pick">
+      <button class="chip" id="srcBtn"><span></span><i class="ar">▼</i></button>
       <button class="chip" id="verBtn"><span></span><i class="ar">▼</i></button>
+      <button class="chip" id="ldrBtn"><span></span><i class="ar">▼</i></button>
     </div>
-    <div class="filters" id="ldrRow"></div>
     <div id="panel"><div class="plist" id="plist"></div></div>
   </header>
   <main id="res"></main>
@@ -125,13 +125,13 @@ const SV = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 const S = { src:'all', v:LS('v',''), l:LS('l',''), lang:LS('lang','en'), theme:LS('theme','dark'), versions:[], panel:null, trCache:{} };
 
 const T = {
- en:{ph:'Search mods…',all:'All',anyV:'Any version',anyL:'All loaders',trending:'🔥 Trending now',popular:'⭐ Most popular',nothing:'Nothing found.<br>Try another query or version.',conn:'Connection error',as:'Searching for',
+ en:{ph:'Search mods…',all:'All',allS:'All sites',anyV:'Any version',anyL:'All loaders',trending:'🔥 Trending now',popular:'⭐ Most popular',nothing:'Nothing found.<br>Try another query or version.',conn:'Connection error',as:'Searching for',
      dl:'📥 Download',dlFor:' for ',site:'🌐 Open website',files:'📦 Files',noFiles:'No files for this version / loader',similar:'🔎 Similar mods',noSim:'No similar mods found',desc:'📄 Description',more:'Show full',
      tr:'🌐 Translate description',chat:'To chat',sent:'File sent to the bot chat',fail:'Could not send — the bot sent a link',forb:'The author disabled direct downloads — open the website',failMod:'Could not load the mod',results:'Results',dls:'downloads',by:'by',orig:'📄 Show original',showTr:'🌐 Show translation'},
- ru:{ph:'Поиск модов…',all:'Все',anyV:'Любая версия',anyL:'Все загрузчики',trending:'🔥 Сейчас в тренде',popular:'⭐ Самые популярные',nothing:'Ничего не найдено.<br>Попробуй другой запрос или версию.',conn:'Ошибка соединения',as:'Ищу как',
+ ru:{ph:'Поиск модов…',all:'Все',allS:'Все сайты',anyV:'Любая версия',anyL:'Все загрузчики',trending:'🔥 Сейчас в тренде',popular:'⭐ Самые популярные',nothing:'Ничего не найдено.<br>Попробуй другой запрос или версию.',conn:'Ошибка соединения',as:'Ищу как',
      dl:'📥 Скачать',dlFor:' для ',site:'🌐 Открыть сайт',files:'📦 Файлы',noFiles:'Нет файлов для этой версии / загрузчика',similar:'🔎 Похожие моды',noSim:'Похожих не нашлось',desc:'📄 Описание',more:'Показать полностью',
      tr:'🌐 Перевести описание',chat:'В чат',sent:'Файл отправлен в чат с ботом',fail:'Не вышло отправить — бот прислал ссылку',forb:'Автор запретил прямое скачивание — открой сайт',failMod:'Не удалось загрузить мод',results:'Результаты',dls:'скачиваний',by:'автор',orig:'📄 Показать оригинал',showTr:'🌐 Показать перевод'},
- uk:{ph:'Пошук модів…',all:'Усі',anyV:'Будь-яка версія',anyL:'Усі завантажувачі',trending:'🔥 Зараз у тренді',popular:'⭐ Найпопулярніші',nothing:'Нічого не знайдено.<br>Спробуй інший запит або версію.',conn:'Помилка зʼєднання',as:'Шукаю як',
+ uk:{ph:'Пошук модів…',all:'Усі',allS:'Усі сайти',anyV:'Будь-яка версія',anyL:'Усі завантажувачі',trending:'🔥 Зараз у тренді',popular:'⭐ Найпопулярніші',nothing:'Нічого не знайдено.<br>Спробуй інший запит або версію.',conn:'Помилка зʼєднання',as:'Шукаю як',
      dl:'📥 Завантажити',dlFor:' для ',site:'🌐 Відкрити сайт',files:'📦 Файли',noFiles:'Немає файлів для цієї версії / завантажувача',similar:'🔎 Схожі моди',noSim:'Схожих не знайшлося',desc:'📄 Опис',more:'Показати повністю',
      tr:'🌐 Перекласти опис',chat:'У чат',sent:'Файл надіслано в чат з ботом',fail:'Не вдалося надіслати — бот надіслав посилання',forb:'Автор заборонив пряме завантаження — відкрий сайт',failMod:'Не вдалося завантажити мод',results:'Результати',dls:'завантажень',by:'автор',orig:'📄 Показати оригінал',showTr:'🌐 Показати переклад'}
 };
@@ -183,9 +183,10 @@ function applyLang(){
   document.querySelectorAll('[data-i]').forEach(e => e.textContent = t(e.dataset.i));
   $('#verBtn span').textContent = S.v || t('anyV');
   $('#verBtn').classList.toggle('on', !!S.v);
-  $('#ldrRow').innerHTML = [['', t('anyL')]].concat(LOADERS.map(l => [l, LNAME[l]])).map(([val, label]) =>
-    `<button class="chip${S.l === val ? ' on' : ''}" data-l="${val}">${label}</button>`).join('');
-  $('#ldrRow').querySelectorAll('[data-l]').forEach(b => b.onclick = () => { S.l = b.dataset.l; SV('l', S.l); haptic(); applyLang(); refresh(); });
+  $('#srcBtn span').textContent = S.src === 'mr' ? 'Modrinth' : S.src === 'cf' ? 'CurseForge' : t('allS');
+  $('#srcBtn').classList.toggle('on', S.src !== 'all');
+  $('#ldrBtn span').textContent = S.l ? LNAME[S.l] : t('anyL');
+  $('#ldrBtn').classList.toggle('on', !!S.l);
 }
 $('#themeBtn').onclick = () => { S.theme = S.theme === 'dark' ? 'light' : 'dark'; SV('theme', S.theme); haptic(); applyTheme(); };
 
@@ -197,6 +198,8 @@ function openPanel(kind){
   S.panel = kind; haptic();
   let items, cur;
   if (kind === 'v') { items = [['', t('anyV')]].concat(S.versions.map(v => [v, v])); cur = S.v; $('#verBtn').classList.add('open'); }
+  else if (kind === 'src') { items = [['all', t('allS')], ['mr', 'Modrinth'], ['cf', 'CurseForge']]; cur = S.src; $('#srcBtn').classList.add('open'); }
+  else if (kind === 'l') { items = [['', t('anyL')]].concat(LOADERS.map(l => [l, LNAME[l]])); cur = S.l; $('#ldrBtn').classList.add('open'); }
   else { items = LANGS; cur = S.lang; }
   $('#plist').innerHTML = items.map(([val, label]) => `<div class="pitem${val === cur ? ' on' : ''}" data-val="${esc(val)}">${esc(label)}</div>`).join('');
   $('#plist').scrollTop = 0;
@@ -207,14 +210,15 @@ function pick(kind, val){
   haptic(); S.panel = null; $('#panel').classList.remove('open');
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('open'));
   if (kind === 'v') { S.v = val; SV('v', val); }
+  else if (kind === 'src') { S.src = val; }
+  else if (kind === 'l') { S.l = val; SV('l', val); }
   else { S.lang = val; SV('lang', val); }
   applyLang(); refresh();
 }
 $('#verBtn').onclick = () => openPanel('v');
 $('#langBtn').onclick = () => openPanel('lang');
-document.querySelectorAll('[data-src]').forEach(c => c.onclick = () => {
-  document.querySelectorAll('[data-src]').forEach(x => x.classList.remove('on')); c.classList.add('on'); S.src = c.dataset.src; haptic(); refresh();
-});
+$('#srcBtn').onclick = () => openPanel('src');
+$('#ldrBtn').onclick = () => openPanel('l');
 $('#f').onsubmit = e => { e.preventDefault(); $('#q').blur(); refresh(); };
 $('#q').oninput = () => { if (!$('#q').value.trim()) home(); };
 function refresh(){ $('#q').value.trim() ? run() : home(); }
